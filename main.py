@@ -6,11 +6,21 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
+# Загружаем нашу базу данных
+from database.database import init_db
+
+# Импорты роутеров
+from handlers.commands import commands_router
+from handlers.text import text_router
+from handlers.media import media_router
+from handlers.callbacks import callback_router
+    
 # Импорты конфигурации
 from config import BOT_TOKEN
 
-# Импорты роутеров
-from handlers import commands, text, media, callbacks
+# Диспетчер нужен для запуска бота
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher(storage=MemoryStorage())
 
 # Импорты утилит
 from utils.reminder_service import init_reminder_service
@@ -21,23 +31,20 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
+# Загружаем нашу базу данных
+init_db()
 
 async def main():
     """Основная функция запуска бота"""
     # Создаем экземпляры бота и диспетчера
-    bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher(storage=MemoryStorage())
     
     # Инициализируем сервис напоминаний
     reminder_service = init_reminder_service(bot)
     logger.info("Сервис напоминаний инициализирован")
     
     # Регистрируем роутеры
-    dp.include_router(commands.commands_router)
-    dp.include_router(text.text_router)
-    dp.include_router(media.media_router)
-    dp.include_router(callbacks.callback_router)
+    dp.include_router(commands_router)
+    dp.include_router(callback_router)
     
     logger.info("Бот запущен!")
     
